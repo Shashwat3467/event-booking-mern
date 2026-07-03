@@ -9,10 +9,11 @@ const AdminDashboard = () => {
     const [events, setEvents] = useState([]);
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [confirmingBookings, setConfirmingBookings] = useState({});
 
     const [showEventForm, setShowEventForm] = useState(false);
     const [formData, setFormData] = useState({
-        title: '', description: '', date: '', location: '', category: '', totalSeats: '', ticketPrice: '', image: ''
+        title: '', description: '', date: '', location: '', category: '', totalSeats: '', ticketPrice: '', imageUrl: ''
     });
 
     useEffect(() => {
@@ -43,10 +44,10 @@ const AdminDashboard = () => {
         try {
             await api.post('/events', formData);
             setShowEventForm(false);
-            setFormData({ title: '', description: '', date: '', location: '', category: '', totalSeats: '', ticketPrice: '', image: '' });
-            fetchData();
+            setFormData({ title: '', description: '', date: '', location: '', category: '', totalSeats: '', ticketPrice: '', imageUrl: '' });
+            await fetchData();
         } catch (error) {
-            alert(error.response?.data?.message || 'Error creating event');
+            alert(error.response?.data?.message || error.response?.data?.error || 'Error creating event');
         }
     };
 
@@ -62,11 +63,36 @@ const AdminDashboard = () => {
     };
 
     const handleConfirmBooking = async (id, paymentStatus) => {
+        if (confirmingBookings[id]) return;
+
+        setConfirmingBookings(prev => ({ ...prev, [id]: true }));
+
         try {
-            await api.put(`/bookings/${id}/confirm`, { paymentStatus });
-            fetchData();
+            const { data } = await api.put(`/bookings/${id}/confirm`, { paymentStatus });
+
+            if (data.booking) {
+                setBookings(prevBookings =>
+                    prevBookings.map(booking =>
+                        booking._id === id
+                            ? {
+                                ...booking,
+                                status: data.booking.status,
+                                paymentStatus: data.booking.paymentStatus
+                            }
+                            : booking
+                    )
+                );
+            }
+
+            await fetchData();
         } catch (error) {
             alert(error.response?.data?.message || 'Error confirming booking');
+        } finally {
+            setConfirmingBookings(prev => {
+                const next = { ...prev };
+                delete next[id];
+                return next;
+            });
         }
     };
 
@@ -135,7 +161,7 @@ const AdminDashboard = () => {
                         <input required type="number" placeholder="Ticket Price (0 for free)" className="border px-4 py-3 rounded-lg focus:ring-2 focus:ring-gray-700 outline-none transition" value={formData.ticketPrice} onChange={e => setFormData({ ...formData, ticketPrice: e.target.value })} />
 
                         <div className="md:col-span-2">
-                            <input type="text" placeholder="Image URL (Provide any direct link to an image)" className="w-full border px-4 py-3 rounded-lg focus:ring-2 focus:ring-gray-700 outline-none transition" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} />
+                            <input required type="url" placeholder="Image URL (Provide any direct link to an image)" className="w-full border px-4 py-3 rounded-lg focus:ring-2 focus:ring-gray-700 outline-none transition" value={formData.imageUrl} onChange={e => setFormData({ ...formData, imageUrl: e.target.value })} />
                         </div>
 
                         <textarea required placeholder="Event Description" className="border px-4 py-3 rounded-lg md:col-span-2 h-32 focus:ring-2 focus:ring-gray-700 outline-none transition" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
@@ -216,11 +242,19 @@ const AdminDashboard = () => {
                                         {/* Action buttons for admin */}
                                         {booking.status === 'pending' && (
                                             <div className="flex flex-wrap gap-2 mt-2">
-                                                <button onClick={() => handleConfirmBooking(booking._id, 'paid')} className="flex-1 min-w-[120px] bg-green-50 text-green-700 hover:bg-green-600 hover:text-white border border-green-200 text-xs font-bold py-2.5 px-3 rounded-lg shadow-sm transition">
-                                                    ✓ Approve as Paid
+                                                <button
+                                                    onClick={() => handleConfirmBooking(booking._id, 'paid')}
+                                                    disabled={!!confirmingBookings[booking._id]}
+                                                    className="flex-1 min-w-[120px] bg-green-50 text-green-700 hover:bg-green-600 hover:text-white border border-green-200 text-xs font-bold py-2.5 px-3 rounded-lg shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
+                                                >
+                                                    {confirmingBookings[booking._id] ? 'Approving...' : '✓ Approve as Paid'}
                                                 </button>
-                                                <button onClick={() => handleConfirmBooking(booking._id, 'not_paid')} className="flex-1 min-w-[120px] bg-gray-50 text-gray-700 hover:bg-gray-800 hover:text-white border border-gray-200 text-xs font-bold py-2.5 px-3 rounded-lg shadow-sm transition">
-                                                    ✓ Approve Undecided
+                                                <button
+                                                    onClick={() => handleConfirmBooking(booking._id, 'not_paid')}
+                                                    disabled={!!confirmingBookings[booking._id]}
+                                                    className="flex-1 min-w-[120px] bg-gray-50 text-gray-700 hover:bg-gray-800 hover:text-white border border-gray-200 text-xs font-bold py-2.5 px-3 rounded-lg shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
+                                                >
+                                                    {confirmingBookings[booking._id] ? 'Approving...' : '✓ Approve Undecided'}
                                                 </button>
                                                 <button onClick={() => handleCancelBooking(booking._id)} className="w-[80px] bg-red-50 text-red-600 hover:bg-red-500 hover:text-white border border-red-200 text-xs font-bold py-2.5 px-3 rounded-lg transition">
                                                     ✕ Reject
