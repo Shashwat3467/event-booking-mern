@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const api = axios.create({//instead of writing base url everytime (axios.get(...)) we can create this instance and call using this  
-    baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",//eg api.get('/events') gives us http://localhost:3000/api/events
+const api = axios.create({
+    baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:3000/api" : "/api"),
     headers: {
         "Content-Type": "application/json",
     },
