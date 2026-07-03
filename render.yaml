@@ -4,8 +4,10 @@ services:
     env: node
     plan: free
     buildCommand: npm run install-all && npm run build
-    startCommand: NODE_ENV=production npm run start
+    startCommand: npm run start
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: PORT
         value: 10000
       - key: MONGO_URL
