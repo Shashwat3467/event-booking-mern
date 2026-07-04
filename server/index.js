@@ -8,6 +8,8 @@ const eventRoutes= require('./routes/events');
 const bookingRoutes= require('./routes/booking');
 dotenv.config();
 
+dns.setDefaultResultOrder("ipv4first");
+
 // Use a reliable public DNS resolver for SRV lookups when Node's default resolver fails.
 // This fixes issues where Node cannot resolve MongoDB Atlas SRV records on some Windows network setups.
 dns.setServers(['8.8.8.8', '1.1.1.1']);
