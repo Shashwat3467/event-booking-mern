@@ -9,8 +9,7 @@
     "server": "npm run dev --prefix server",
     "client": "npm run dev --prefix client/EVENTER",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "build": "npm run build --prefix client/EVENTER",
-    "start": "npm run start --prefix server"
+    "start": "npm run dev"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

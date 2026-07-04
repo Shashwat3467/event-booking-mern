@@ -57,7 +57,6 @@ exports.createEvent = async (req, res) => {
     } = req.body;
 
     try {
-        console.log(req.body);
         const event = await Event.create({
             title,
             description,
