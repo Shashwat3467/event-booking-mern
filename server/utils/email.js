@@ -3,28 +3,30 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+const senderEmail = process.env.BREVO_FROM_EMAIL || process.env.EMAIL_USER || 'no-reply@eventer.com';
+
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
+    host: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
+    port: Number(process.env.BREVO_SMTP_PORT) || 587,
+    secure: process.env.BREVO_SMTP_SECURE === 'true',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.BREVO_SMTP_USER || process.env.EMAIL_USER,
+        pass: process.env.BREVO_SMTP_PASS || process.env.EMAIL_PASS,
     },
 });
 
 transporter.verify((err) => {
     if (err) {
-        console.error("SMTP Verify Error:", err);
+        console.error('Brevo SMTP Verify Error:', err);
     } else {
-        console.log("SMTP Ready");
+        console.log('Brevo SMTP Ready');
     }
 });
 
 const sendBookingEmail = async (userEmail, userName, eventTitle) => {
     try {
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: senderEmail,
             to: userEmail,
             subject: `Booking Confirmed: ${eventTitle}`,
             html: `
@@ -48,7 +50,7 @@ const sendOTPEmail = async (userEmail, otp, type) => {
             : 'Please use the following OTP to verify and confirm your event booking.';
 
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: senderEmail,
             to: userEmail,
             subject: title,
             html: `
