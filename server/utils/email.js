@@ -5,6 +5,15 @@ dotenv.config();
 
 const senderEmail = process.env.BREVO_FROM_EMAIL || process.env.EMAIL_USER || 'no-reply@eventer.com';
 
+console.log({
+  host: process.env.BREVO_SMTP_HOST,
+  port: process.env.BREVO_SMTP_PORT,
+  secure: process.env.BREVO_SMTP_SECURE,
+  user: process.env.BREVO_SMTP_USER,
+  from: process.env.BREVO_FROM_EMAIL,
+  passExists: !!process.env.BREVO_SMTP_PASS,
+});
+
 const transporter = nodemailer.createTransport({
     host: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
     port: Number(process.env.BREVO_SMTP_PORT) || 587,
@@ -15,13 +24,13 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-transporter.verify((err) => {
-    if (err) {
-        console.error('Brevo SMTP Verify Error:', err);
-    } else {
-        console.log('Brevo SMTP Ready');
-    }
-});
+// transporter.verify((err) => {
+//     if (err) {
+//         console.error('Brevo SMTP Verify Error:', err);
+//     } else {
+//         console.log('Brevo SMTP Ready');
+//     }
+// });
 
 const sendBookingEmail = async (userEmail, userName, eventTitle) => {
     try {
