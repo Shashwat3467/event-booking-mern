@@ -24,13 +24,13 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// transporter.verify((err) => {
-//     if (err) {
-//         console.error('Brevo SMTP Verify Error:', err);
-//     } else {
-//         console.log('Brevo SMTP Ready');
-//     }
-// });
+transporter.verify((err) => {
+    if (err) {
+        console.error('Brevo SMTP Verify Error:', err);
+    } else {
+        console.log('Brevo SMTP Ready');
+    }
+});
 
 const sendBookingEmail = async (userEmail, userName, eventTitle) => {
     try {
