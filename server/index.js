@@ -31,7 +31,6 @@ mongoose.connect(process.env.MONGO_URL)
     console.error('Error connecting to MongoDB:',err)
 })
 
-console.log("🚀 DEPLOY VERSION: JULY-07-TEST");
 app.listen(process.env.PORT,()=>{
     console.log(`Server is running on port ${process.env.PORT}`);
 }); 
