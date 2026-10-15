@@ -23,14 +23,19 @@ const eventSchema=new mongoose.Schema({
     },
     totalSeats:{
         type:Number,
+        min: 0,
+        validate: Number.isInteger,
         required:true
     },
     availableSeats:{
         type:Number,
+        min: 0,
+        validate: Number.isInteger,
         required:true
     },
     ticketPrice:{
         type:Number,
+        min: 0,
         required:true
     },
     imageUrl:{

@@ -5,18 +5,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaTicketAlt, FaTimesCircle } from 'react-icons/fa';
 
 const UserDashboard = () => {
-    const { user } = useContext(AuthContext);
+    const { user, loading: authLoading } = useContext(AuthContext);
     const navigate = useNavigate();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (authLoading) return;
         if (!user) {
             navigate('/login');
             return;
         }
         fetchBookings();
-    }, [user, navigate]);
+    }, [user, authLoading, navigate]);
 
     const fetchBookings = async () => {
         try {
@@ -101,7 +102,7 @@ const UserDashboard = () => {
                                         <div className="text-sm text-gray-500 mb-4 space-y-1">
                                             <p><strong className="text-gray-700">Date:</strong> {new Date(booking.eventId.date).toLocaleDateString()}</p>
                                             <p><strong className="text-gray-700">Amount:</strong> {booking.amount === 0 ? 'Free' : `₹${booking.amount}`}</p>
-                                            <p><strong className="text-gray-700">Requested:</strong> {new Date(booking.bookedAt).toLocaleDateString()}</p>
+                                            <p><strong className="text-gray-700">Requested:</strong> {new Date(booking.createdAt).toLocaleDateString()}</p>
                                         </div>
                                     </>
                                 ) : (

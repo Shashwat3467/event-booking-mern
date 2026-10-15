@@ -19,6 +19,7 @@ const userSchema= new mongoose.Schema({
         enum:['user','admin'],
         default:'user'
     },
+    bookingVersion: { type: Number, default: 0, select: false },
     isVerified:{
         type:Boolean,
         default:false

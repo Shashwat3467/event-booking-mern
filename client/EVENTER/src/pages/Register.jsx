@@ -11,8 +11,22 @@ const Register = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const { register, verifyOTP } = useContext(AuthContext);
+    const { register, verifyOTP, login } = useContext(AuthContext);
     const navigate = useNavigate();
+
+    const resendOTP = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const data = await login(email, password);
+            navigate(data.role === 'admin' ? '/admin' : '/dashboard');
+        } catch (err) {
+            setError(err.message || 'Could not resend OTP');
+            if (err.needsVerification) setOtp('');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -95,7 +109,12 @@ const Register = () => {
                             value={otp}
                             onChange={(e) => setOtp(e.target.value)}
                             maxLength="6"
+                            inputMode="numeric"
+                            pattern="[0-9]{6}"
                         />
+                        <button type="button" onClick={resendOTP} disabled={loading} className="mt-3 text-sm font-semibold underline disabled:opacity-50">
+                            Resend OTP (once per minute)
+                        </button>
                     </div>
                 )}
 

@@ -11,12 +11,19 @@ const EventDetail = () => {
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [bookingLoading, setBookingLoading] = useState(false);
+    const [requested, setRequested] = useState(false);
     const [otp, setOtp] = useState('');
     const [showOTP, setShowOTP] = useState(false);
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
     useEffect(() => {
+        setRequested(false);
+        setShowOTP(false);
+        setOtp('');
+        setError('');
+        setSuccessMsg('');
+        setLoading(true);
         const fetchEvent = async () => {
             try {
                 const { data } = await api.get(`/events/${id}`);
@@ -29,6 +36,20 @@ const EventDetail = () => {
         };
         fetchEvent();
     }, [id]);
+
+    const resendOTP = async () => {
+        setBookingLoading(true);
+        setError('');
+        try {
+            await api.post('/bookings/send-otp');
+            setOtp('');
+            setSuccessMsg('A new OTP has been sent. It expires in 5 minutes.');
+        } catch (err) {
+            setError(err.response?.data?.message || 'Could not resend OTP');
+        } finally {
+            setBookingLoading(false);
+        }
+    };
 
     const handleBooking = async () => {
         if (!user) {
@@ -48,8 +69,7 @@ const EventDetail = () => {
                 await api.post('/bookings', { eventId: event._id, otp });
                 setSuccessMsg('Booking requested! Awaiting admin confirmation.');
                 setShowOTP(false);
-                // Update local seats count dynamically after booking
-                setEvent({ ...event, availableSeats: event.availableSeats - 1 });
+                setRequested(true);
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Booking failed');
@@ -141,13 +161,17 @@ const EventDetail = () => {
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value)}
                                     maxLength="6"
+                                    inputMode="numeric"
                                 />
+                                <button type="button" onClick={resendOTP} disabled={bookingLoading} className="mt-3 text-sm font-semibold underline disabled:opacity-50">
+                                    Resend OTP (once per minute)
+                                </button>
                             </div>
                         )}
 
                         <button
                             onClick={handleBooking}
-                            disabled={isSoldOut || bookingLoading || (showOTP && !otp)}
+                            disabled={isSoldOut || requested || bookingLoading || (showOTP && !/^\d{6}$/.test(otp))}
                             className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition shadow-lg ${isSoldOut || (successMsg && !showOTP)
                                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                 : 'bg-gray-900 hover:bg-black text-white hover:shadow-xl hover:-translate-y-1'

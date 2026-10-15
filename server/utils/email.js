@@ -10,6 +10,7 @@ const sendEmail = async (to, subject, html) => {
     try {
         const response = await fetch("https://api.brevo.com/v3/smtp/email", {
             method: "POST",
+            signal: AbortSignal.timeout(15000),
             headers: {
                 "Content-Type": "application/json",
                 "api-key": apiKey,
@@ -36,7 +37,9 @@ const sendEmail = async (to, subject, html) => {
 
         console.log("Email sent successfully");
     } catch (err) {
-        console.error("Brevo API Error:", err.message);
+        const error = new Error('Email service unavailable. Please try again.');
+        error.status = 502;
+        throw error;
     }
 };
 

@@ -21,10 +21,13 @@ const protect= async (req,res,next)=>{
                 return res.status(401).json({message:'Not authorized, user not found'});
             }
             next();
-        }  
+        }
         catch(error)
         {
-            return res.status(401).json({message:'Not authorized, token failed'});
+            if (['JsonWebTokenError', 'TokenExpiredError', 'NotBeforeError'].includes(error.name)) {
+                return res.status(401).json({message:'Not authorized, token failed'});
+            }
+            return res.status(500).json({message:'Internal server error'});
         }
     }
     else

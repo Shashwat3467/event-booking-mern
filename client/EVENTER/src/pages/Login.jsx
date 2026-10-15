@@ -22,6 +22,20 @@ const Login = () => {
         }
     }}, [user, navigate]);
 
+    const resendOTP = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const data = await login(email, password);
+            navigate(data.role === 'admin' ? '/admin' : '/dashboard');
+        } catch (err) {
+            setError(err.message || 'Could not resend OTP');
+            if (err.needsVerification) setOtp('');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -39,7 +53,7 @@ const Login = () => {
         } catch (err) {
             if (err.needsVerification) {
                 setShowOTP(true);
-                setError('Account not verified. A new OTP has been sent to your email.');
+                setError(err.message);
             } else {
                 setError(err.message || err);
             }
@@ -92,7 +106,12 @@ const Login = () => {
                             value={otp}
                             onChange={(e) => setOtp(e.target.value)}
                             maxLength="6"
+                            inputMode="numeric"
+                            pattern="[0-9]{6}"
                         />
+                        <button type="button" onClick={resendOTP} disabled={loading} className="mt-3 text-sm font-semibold underline disabled:opacity-50">
+                            Resend OTP (once per minute)
+                        </button>
                     </div>
                 )}
                 <button

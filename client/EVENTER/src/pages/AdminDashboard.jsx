@@ -4,7 +4,7 @@ import api from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
-    const { user } = useContext(AuthContext);
+    const { user, loading: authLoading } = useContext(AuthContext);
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [bookings, setBookings] = useState([]);
@@ -17,12 +17,13 @@ const AdminDashboard = () => {
     });
 
     useEffect(() => {
+        if (authLoading) return;
         if (!user || user.role !== 'admin') {
             navigate('/login');
             return;
         }
         fetchData();
-    }, [user, navigate]);
+    }, [user, authLoading, navigate]);
 
     const fetchData = async () => {
         try {
@@ -70,6 +71,7 @@ const AdminDashboard = () => {
         try {
             const { data } = await api.put(`/bookings/${id}/confirm`, { paymentStatus });
 
+            if (data.emailSent === false) alert(data.message);
             if (data.booking) {
                 setBookings(prevBookings =>
                     prevBookings.map(booking =>
